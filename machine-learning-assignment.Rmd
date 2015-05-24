@@ -1,0 +1,81 @@
+---
+title: "Excercise behaviour prediction"
+author: "Atul Anand"
+date: "Sunday 24 May 2015"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+##Data processing
+```{r}
+testData <- read.csv("pml-testing.csv")
+trainDataGiven <- read.csv("pml-training.csv")
+```
+
+There are variables with mostly NA values which won't help in prediction, removing such variables. Also removing near zero values which don't have significant effect in prediction.
+
+
+```{r}
+
+library(caret)
+funcNA <- sapply(trainDataGiven, function(x) mean(is.na(x))) < 0.95
+trainDataGiven <- trainDataGiven[, funcNA == TRUE]
+
+##removing the near zero values
+nearZero <- nearZeroVar(trainDataGiven)
+trainData <- trainDataGiven[, -nearZero]
+
+```
+
+Here we are left with `r ncol(trainData) ` variables.
+
+We want to be able to check the quality of prediction which can't be done on the testing set, so we divide the training data to have a testing data out of it.
+
+```{r}
+set.seed(1234)
+inTrain <- createDataPartition(y=trainData$classe, p = 0.6, list = FALSE)
+tempTrain <- trainData[inTrain,]
+tempTest <- trainData[-inTrain,]
+```
+
+##Model selection
+Trying out rpart model.
+
+```{r}
+set.seed(1111)
+modelFit <- train(classe ~ . , method = "rpart", data = tempTrain)
+print(modelFit$finalModel)
+modelPredict <- predict(modelFit , tempTest)
+mat <- confusionMatrix(tempTest$classe, modelPredict)
+mat
+```
+The accuracy for this model turns out to be `r mat[[3]][1] ` . Since it is low accurarcy and not acceptable, we try Random forests model with holdout method for model control.
+
+```{r}
+##Using 2-fold cross validation (holdout method) for the optimal model fit.
+modelFitControl <- trainControl(method="cv", number = 2, verboseIter = F)
+modelFitRf <- train(classe ~ . , data = tempTrain, method = "rf", trControl = modelFitControl)
+print(modelFitRf$finalModel)
+
+modelPredictRf <- predict(modelFitRf,newdata = tempTest)
+matr <- confusionMatrix (tempTest$classe, modelPredictRf)
+```
+
+The accuracy for the random forest model seems to be pretty high, so we are going to use this model to train the whole training set. Our predicted accuracy for the out of sample error is `r 100-matr[[3]][1]*100 ` .
+
+```{r, eval=FALSE}
+##evaluation has been disabled for this chunk to avoid high computation time and processor overheating on my system.
+
+modelFitFinal <- train(classe ~ . , data = trainData, method = "rf", trControl = modelFitControl)
+
+modelPredictFinal <- predict(modelFitFinal, newdata = testData)
+
+```
+
+
+
+
+
