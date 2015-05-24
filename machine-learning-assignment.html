@@ -160,7 +160,7 @@ print(modelFitRf$finalModel)</code></pre>
 ## E    0    0    0    0 2165 0.0000000000</code></pre>
 <pre class="r"><code>modelPredictRf &lt;- predict(modelFitRf,newdata = tempTest)
 matr &lt;- confusionMatrix (tempTest$classe, modelPredictRf)</code></pre>
-<p>The accuracy for the random forest model seems to be pretty high, so we are going to use this model to train the whole training set. Our predicted accuracy for the out of sample error is 0.038236 .</p>
+<p>The accuracy for the random forest model seems to be much higher than the rpart model, so we are going to use this model to train the whole training set and use it predict the test dataset. Our predicted accuracy for the out of sample error is 0.038236 .</p>
 <pre class="r"><code>##evaluation has been disabled for this chunk to avoid high computation time and processor overheating on my system.
 
 modelFitFinal &lt;- train(classe ~ . , data = trainData, method = &quot;rf&quot;, trControl = modelFitControl)

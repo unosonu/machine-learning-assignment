@@ -64,7 +64,7 @@ modelPredictRf <- predict(modelFitRf,newdata = tempTest)
 matr <- confusionMatrix (tempTest$classe, modelPredictRf)
 ```
 
-The accuracy for the random forest model seems to be pretty high, so we are going to use this model to train the whole training set. Our predicted accuracy for the out of sample error is `r 100-matr[[3]][1]*100 ` .
+The accuracy for the random forest model seems to be much higher than the rpart model, so we are going to use this model to train the whole training set and use it predict the test dataset. Our predicted accuracy for the out of sample error is `r 100-matr[[3]][1]*100 ` .
 
 ```{r, eval=FALSE}
 ##evaluation has been disabled for this chunk to avoid high computation time and processor overheating on my system.
